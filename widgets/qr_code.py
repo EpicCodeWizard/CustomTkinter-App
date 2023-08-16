@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from PIL import Image
 import tkinter as tk
+import time
 
 from .modal import Modal
 
@@ -33,6 +34,7 @@ class QRCode(ctk.CTkButton):
         self.raw_image = None
         self.master = master
         self.scale = ctk.ScalingTracker.get_window_dpi_scaling(self.master)
+        self.last_resize_time = 0  # Add this line to initialize a variable to track the last resize time
 
         super().__init__(master = self.master,
                          text = "",
@@ -56,14 +58,19 @@ class QRCode(ctk.CTkButton):
         Dynamically resizes the image to fill up the space of the button.
         """
 
-        self.scale = ctk.ScalingTracker.get_window_dpi_scaling(self.master)
+        current_time = time.time()
+        if current_time - self.last_resize_time < 0.1:  # Throttle the resize operation to once every 0.1 seconds
+            return
 
+        self.last_resize_time = current_time
+
+        self.scale = ctk.ScalingTracker.get_window_dpi_scaling(self.master)
         side = min(event.width, event.height) / self.scale
         if not self.raw_image is None:
-            self.image = ctk.CTkImage(light_image = self.raw_image,
-                                    size = (side, side)
-                                    )
-        self.configure(True, image = self.image)
+            self.image = ctk.CTkImage(light_image=self.raw_image,
+                                      size=(side, side)
+                                      )
+        self.configure(True, image=self.image)
 
     def set_image(self,
                   path: str
